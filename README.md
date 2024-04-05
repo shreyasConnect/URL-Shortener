@@ -1,9 +1,3 @@
-# 🔗 URL-Shortener
-
-  <p align="center">URL/Link shortener built on MERN stack.</p>  
-    
-
-  
 ### Tech Stack 📚
 
 - A complete MERN stack project.
