@@ -4,7 +4,7 @@ import Container from "./components/Container/Container";
 import styles from "./App.module.css";
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Footer from "./components/Footer/footer";
-import RedirectToExternalURL from "./tp";
+
 
 function App() {
   return (
@@ -12,7 +12,7 @@ function App() {
       <Navbar />
       <Container />
       <Footer />
-      
+
 
     </div>
   );
