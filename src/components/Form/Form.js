@@ -1,80 +1,81 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react';
 import styles from "./Form.module.css";
-import axios from "axios";
 
-const serverBase = process.env.REACT_APP_SERVERURL || "http://localhost:5000";
+function UrlShortener() {
+  const [originalUrl, setOriginalUrl] = useState('');
+  const [shortenedUrl, setShortenedUrl] = useState('');
+  const [shortenedUrls, setShortenedUrls] = useState([]);
 
-function is_url(str) {
-  let exp = new RegExp(
-    /^(?:(?:https?|ftp):\/\/)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:\/\S*)?$/
-  );
-  return exp.test(str);
-}
-
-function fix_url(url) {
-  if (url.substring(0, 7) === "http://" || url.substring(0, 8) === "https://") {
-    return url;
-  } else {
-    return `http://${url}`;
-  }
-}
-
-export default function Form(props) {
-  const [inputURL, setInputURL] = useState("");
-
-  const handleChange = (event) => {
-    setInputURL(event.target.value);
+  // Function to generate a random alphanumeric string
+  const generateRandomString = (length) => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
   };
 
-  function handleSubmit(event) {
-    event.preventDefault();
-    props.setErrMsg(null);
-    props.setLoading(true);
+  // Function to shorten the URL
+  const shortenUrl = (originalUrl) => {
+    const newShortenedUrl = generateRandomString(6);
+    setShortenedUrl(newShortenedUrl);
+    localStorage.setItem(newShortenedUrl, originalUrl);
+    return newShortenedUrl;
+  };
 
-    if (!is_url(inputURL)) {
-      props.setLoading(false);
-      props.setErrMsg("Unable to shorten that link. It is not a valid URL.");
-      return;
+  // Function to display shortened URLs
+  const displayShortenedUrls = () => {
+    const urls = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const shortenedUrl = localStorage.key(i);
+      const originalUrl = localStorage.getItem(shortenedUrl);
+      urls.push({ shortenedUrl, originalUrl });
     }
+    setShortenedUrls(urls);
+  };
 
-    const longURL = fix_url(inputURL);
-    const postData = { full: longURL };
+  // Event handler for form submission
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (originalUrl.trim() !== '') {
+      const newShortenedUrl = shortenUrl(originalUrl.trim());
+      displayShortenedUrls();
+      alert(`Shortened URL: ${window.location.href}${newShortenedUrl}`);
+      setOriginalUrl('');
+    } else {
+      alert('Please enter a valid URL.');
+    }
+  };
 
-    axios
-      .post(`${serverBase}/short`, postData)
-      .then((res) => props.setFetchedData(res.data[0]))
-      .catch((err) => {
-        props.setErrMsg("Something Went Wrong.");
-        props.setLoading(false);
-        console.error(err);
-      });
-
-    setTimeout(() => {
-      props.setLoading(false);
-      setInputURL("");
-    }, 1000);
-  }
+  // Display existing shortened URLs on component mount
+  useEffect(() => {
+    displayShortenedUrls();
+  }, []);
 
   return (
-    <form
-      className={styles.formstyle}
-      noValidate
-      autoComplete="off"
-      onSubmit={handleSubmit}
-    >
-      <div className={styles.textfieldContainer}>
-        <input
-          className={styles.textfieldStyle}
-          required
-          type="url"
-          onChange={handleChange}
-          value={inputURL}
-          placeholder="Enter a URL"
-        />
-        <button className={styles.shortenButton} type="submit">
-          Shorten
-        </button>
+    <div className="formstyle">
+      <form onSubmit={handleSubmit} className={styles.formstyle}>
+        <div className={styles.textfieldContainer}>
+          <input
+            type="text"
+            placeholder="Enter URL to shorten"
+            value={originalUrl}
+            onChange={(e) => setOriginalUrl(e.target.value)}
+            className={styles.textfieldStyle}
+          />
+          <button type="submit" className={styles.shortenButton}>Shorten</button>
+        </div>
+      </form>
+      <div id="shortened-urls">
+        {shortenedUrls.map(({ shortenedUrl, originalUrl }) => (
+          <div key={shortenedUrl}>
+            <a href={originalUrl}>{shortenedUrl}</a>
+          </div>
+        ))}
       </div>
-    </form>
+    </div>
   );
 }
+
+export default UrlShortener;
