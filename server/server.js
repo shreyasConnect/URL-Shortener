@@ -2,10 +2,12 @@ import express from "express";
 import mongoose from "mongoose";
 import shortUrl from "./model/shortStore.js";
 import cors from "cors";
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
 
-mongoose.connect("mongodb://127.0.0.1:27017/shortUrlDB", {
+mongoose.connect(process.env.MONGO, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
